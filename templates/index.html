@@ -11,17 +11,19 @@
     <form action="/" method="post">
         <label for="keyword">검색어:</label>
         <input type="text" id="keyword" name="keyword" required>
+        <label for="schedule_minute">전송 시간</label>
         <select id="schedule_hour" name="schedule_hour" required>
             {% for hour in range(24) %}
                 <option value="{{ hour }}">{{ hour }}:00</option>
             {% endfor %}
         </select>
-        <label for="schedule_minute">엑셀 파일 전송 시간 (분):</label>
+        <label for="schedule_minute">(시)</label>
         <select id="schedule_minute" name="schedule_minute" required>
             {% for minute in range(0, 60, 5) %}
-                <option value="{{ minute }}">{{ minute }} 분</option>
+                <option value="{{ minute }}">{{ minute }}</option>
             {% endfor %}
         </select>
+        <label for="schedule_minute">(분)</label>
         <input type="submit" value="검색 및 스케줄 설정">
     </form>
 </body>
