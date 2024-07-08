@@ -19,7 +19,7 @@
         </select>
         <label for="schedule_minute">(시)</label>
         <select id="schedule_minute" name="schedule_minute" required>
-            {% for minute in range(0, 60, 5) %}
+            {% for minute in range(0, 60) %}
                 <option value="{{ minute }}">{{ minute }}</option>
             {% endfor %}
         </select>
