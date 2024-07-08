@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}">
+    <title>네이버 뉴스 검색 서비스</title>
+</head>
+<body>
+    <h1>네이버 뉴스 검색 서비스</h1>
+    <form action="/" method="post">
+        <label for="keyword">검색어:</label>
+        <input type="text" id="keyword" name="keyword" required>
+        <select id="schedule_hour" name="schedule_hour" required>
+            {% for hour in range(24) %}
+                <option value="{{ hour }}">{{ hour }}:00</option>
+            {% endfor %}
+        </select>
+        <label for="schedule_minute">엑셀 파일 전송 시간 (분):</label>
+        <select id="schedule_minute" name="schedule_minute" required>
+            {% for minute in range(0, 60, 5) %}
+                <option value="{{ minute }}">{{ minute }} 분</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="검색 및 스케줄 설정">
+    </form>
+</body>
+</html>
