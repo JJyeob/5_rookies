@@ -111,7 +111,7 @@ def index():
         print('전체 검색 : %d 건' % total)
 
         current_datetime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        excel_filename = f'{srcText}_{node}_{current_datetime}.xlsx'
+        excel_filename = f'{node}_{current_datetime}.xlsx' #이부분에서 srtText 가 한글이여서 인코딩문제때문에 확장자가 삭제된것같음
         file_path = os.path.join('scheduled_files', excel_filename)
 
         if not os.path.exists('scheduled_files'):
