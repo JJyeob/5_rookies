@@ -10,20 +10,25 @@
     <h1>네이버 뉴스 검색 서비스</h1>
     <form action="/" method="post">
         <label for="keyword">검색어:</label>
-        <input type="text" id="keyword" name="keyword" required>
-        <label for="schedule_minute">전송 시간</label>
+        <input type="text" id="keyword" name="keyword" required><br><br>
+        
+        <label for="schedule_hour">전송 시간:</label>
         <select id="schedule_hour" name="schedule_hour" required>
             {% for hour in range(24) %}
                 <option value="{{ hour }}">{{ hour }}:00</option>
             {% endfor %}
         </select>
-        <label for="schedule_minute">(시)</label>
+        <label for="schedule_hour">(시)</label>
         <select id="schedule_minute" name="schedule_minute" required>
             {% for minute in range(0, 60) %}
                 <option value="{{ minute }}">{{ minute }}</option>
             {% endfor %}
         </select>
-        <label for="schedule_minute">(분)</label>
+        <label for="schedule_minute">(분)</label><br><br>
+
+        <label for="recipient">전송받을 이메일:</label>
+        <input type="email" id="recipient" name="recipient" required>
+        
         <input type="submit" value="검색 및 스케줄 설정">
     </form>
 </body>

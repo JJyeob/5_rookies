@@ -8,12 +8,16 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
+
+#네이버 api
 client_id = 'OsJDydLq5gAsxl6E00J0'
 client_secret = 'JYQ4XeX1Vx'
 
+#스케쥴러
 scheduler = BackgroundScheduler()
 scheduler.start()
 
@@ -67,10 +71,12 @@ def getPostData(post, jsonResult, cnt):
     return
 
 def send_excel_via_email(filename, recipient):
-    sender = 'ask5730@naver.com'
-    password = 'Wkdwhdduq1@'
+    
+    load_dotenv()
+    SECRET_ID = os.getenv("SECRET_ID")
+    SECRET_PASS = os.getenv("SECRET_PASS")
     msg = MIMEMultipart()
-    msg['From'] = sender
+    msg['From'] = SECRET_ID
     msg['To'] = recipient
     msg['Subject'] = 'Scheduled Excel File'
 
@@ -83,8 +89,8 @@ def send_excel_via_email(filename, recipient):
 
     server = smtplib.SMTP('smtp.naver.com', 587)
     server.starttls()
-    server.login(sender, password)
-    server.sendmail(sender, recipient, msg.as_string())
+    server.login(SECRET_ID, SECRET_PASS)
+    server.sendmail(SECRET_ID, recipient, msg.as_string())
     server.quit()
 
 @app.route('/', methods=['GET', 'POST'])
@@ -93,6 +99,7 @@ def index():
         srcText = request.form['keyword']
         schedule_hour = int(request.form['schedule_hour'])
         schedule_minute = int(request.form['schedule_minute'])
+        recipient = request.form['recipient']
         node = 'news'  # 크롤링할 대상
         cnt = 0
         jsonResult = []
@@ -109,9 +116,9 @@ def index():
             jsonResponse = getNaverSearch(node, srcText, start, 100)
 
         print('전체 검색 : %d 건' % total)
-
+        print(f'받을 이메일주소: {recipient}')
         current_datetime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        excel_filename = f'{node}_{current_datetime}.xlsx' #이부분에서 srtText 가 한글이여서 인코딩문제때문에 확장자가 삭제된것같음
+        excel_filename = f'Subjects-subscribed-{node}.xlsx'
         file_path = os.path.join('scheduled_files', excel_filename)
 
         if not os.path.exists('scheduled_files'):
@@ -128,7 +135,7 @@ def index():
 
         # Schedule the task
         scheduler.add_job(
-            send_excel_via_email, 'cron', hour=schedule_hour, minute=schedule_minute, args=[file_path, 'b01031722606@gmail.com']
+            send_excel_via_email, 'cron', hour=schedule_hour, minute=schedule_minute, args=[file_path, recipient]
         )
 
         return render_template('result.html', items=jsonResult, total=total, excel_filename=excel_filename)
