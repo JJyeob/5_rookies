@@ -72,8 +72,45 @@ def getPostData(post, jsonResult, cnt):
                        'org_link': org_link, 'link': link, 'pDate': pDate})
     return
 
-# 엑셀 파일을 이메일로 전송하는 함수
-def send_excel_via_email(filename, recipient):
+# 엑셀 파일을 생성하고 이메일로 전송하는 함수
+def send_excel_via_email(srcText, recipient, node):
+    jsonResult = []
+    cnt = 0
+
+    # 네이버 검색 요청
+    jsonResponse = getNaverSearch(node, srcText, 1, 100)
+    total = jsonResponse['total']
+
+    # 검색 결과 처리
+    while jsonResponse and jsonResponse['display'] != 0:
+        for post in jsonResponse['items']:
+            cnt += 1
+            getPostData(post, jsonResult, cnt)
+
+        start = jsonResponse['start'] + jsonResponse['display']
+        jsonResponse = getNaverSearch(node, srcText, start, 100)
+
+    print('전체 검색 : %d 건' % total)
+    print(f'받을 이메일주소: {recipient}')
+    current_datetime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    excel_filename = f'Subjects-subscribed-{node}-{current_datetime}.xlsx'
+    file_path = os.path.join('scheduled_files', excel_filename)
+
+    # 파일 저장 디렉토리 생성
+    if not os.path.exists('scheduled_files'):
+        os.makedirs('scheduled_files')
+
+    # 엑셀 파일 생성 및 데이터 추가
+    wb = Workbook()
+    ws = wb.active
+    ws.append(['번호', '제목', '설명', '원본 링크', '링크', '날짜'])
+
+    for item in jsonResult:
+        ws.append([item['cnt'], item['title'], item['description'], item['org_link'], item['link'], item['pDate']])
+
+    wb.save(file_path)
+
+    # 이메일 전송
     load_dotenv()
     SECRET_ID = os.getenv("SECRET_ID")
     SECRET_PASS = os.getenv("SECRET_PASS")
@@ -82,11 +119,11 @@ def send_excel_via_email(filename, recipient):
     msg['To'] = recipient
     msg['Subject'] = 'Scheduled Excel File'
 
-    with open(filename, 'rb') as attachment:
+    with open(file_path, 'rb') as attachment:
         part = MIMEBase('application', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         part.set_payload(attachment.read())
         encoders.encode_base64(part)
-        part.add_header('Content-Disposition', f'attachment; filename={os.path.basename(filename)}')
+        part.add_header('Content-Disposition', f'attachment; filename={os.path.basename(file_path)}')
         msg.attach(part)
 
     server = smtplib.SMTP('smtp.naver.com', 587)
@@ -99,52 +136,15 @@ def send_excel_via_email(filename, recipient):
 def index():
     if request.method == 'POST':
         srcText = request.form['keyword']
-        schedule_hour = int(request.form['schedule_hour'])
-        schedule_minute = int(request.form['schedule_minute'])
         recipient = request.form['recipient']
         node = 'news'  # 크롤링할 대상
-        cnt = 0
-        jsonResult = []
 
-        # 네이버 검색 요청
-        jsonResponse = getNaverSearch(node, srcText, 1, 100)
-        total = jsonResponse['total']
-
-        # 검색 결과 처리
-        while jsonResponse and jsonResponse['display'] != 0:
-            for post in jsonResponse['items']:
-                cnt += 1
-                getPostData(post, jsonResult, cnt)
-
-            start = jsonResponse['start'] + jsonResponse['display']
-            jsonResponse = getNaverSearch(node, srcText, start, 100)
-
-        print('전체 검색 : %d 건' % total)
-        print(f'받을 이메일주소: {recipient}')
-        current_datetime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        excel_filename = f'Subjects-subscribed-{node}.xlsx'
-        file_path = os.path.join('scheduled_files', excel_filename)
-
-        # 파일 저장 디렉토리 생성
-        if not os.path.exists('scheduled_files'):
-            os.makedirs('scheduled_files')
-
-        # 엑셀 파일 생성 및 데이터 추가
-        wb = Workbook()
-        ws = wb.active
-        ws.append(['번호', '제목', '설명', '원본 링크', '링크', '날짜'])
-
-        for item in jsonResult:
-            ws.append([item['cnt'], item['title'], item['description'], item['org_link'], item['link'], item['pDate']])
-
-        wb.save(file_path)
-
-        # 스케줄러 작업 설정
+        # 스케줄러 작업 설정 (1분마다 실행되도록 설정)
         scheduler.add_job(
-            send_excel_via_email, 'cron', hour=schedule_hour, minute=schedule_minute, args=[file_path, recipient]
+            send_excel_via_email, 'interval', minutes=1, args=[srcText, recipient, node]
         )
 
-        return render_template('result.html', items=jsonResult, total=total, excel_filename=excel_filename)
+        return render_template('result.html', keyword=srcText, recipient=recipient)
 
     return render_template('index.html')
 
