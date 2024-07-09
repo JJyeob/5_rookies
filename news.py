@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, jsonify
 import urllib.request
 import datetime, re, json, os, smtplib
 from openpyxl import Workbook
@@ -73,7 +73,7 @@ def getPostData(post, jsonResult, cnt):
     return
 
 # 엑셀 파일을 생성하고 이메일로 전송하는 함수
-def send_excel_via_email(srcText, recipient, node):
+def create_and_send_excel(srcText, recipient, node):
     jsonResult = []
     cnt = 0
 
@@ -132,6 +132,8 @@ def send_excel_via_email(srcText, recipient, node):
     server.sendmail(SECRET_ID, recipient, msg.as_string())
     server.quit()
 
+    return jsonResult, excel_filename, total
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -141,7 +143,7 @@ def index():
 
         # 스케줄러 작업 설정 (1분마다 실행되도록 설정)
         scheduler.add_job(
-            send_excel_via_email, 'interval', minutes=1, args=[srcText, recipient, node]
+            create_and_send_excel, 'interval', minutes=1, args=[srcText, recipient, node]
         )
 
         return render_template('result.html', keyword=srcText, recipient=recipient)
@@ -151,6 +153,17 @@ def index():
 @app.route('/download/<path:filename>')
 def download(filename):
     return send_file(os.path.join('scheduled_files', filename), as_attachment=True)
+
+@app.route('/get_latest_data', methods=['POST'])
+def get_latest_data():
+    srcText = request.form['keyword']
+    recipient = request.form['recipient']
+    node = 'news'
+
+    # 최신 데이터를 가져오고 엑셀 파일을 생성
+    jsonResult, excel_filename, total = create_and_send_excel(srcText, recipient, node)
+
+    return jsonify({'items': jsonResult, 'total': total, 'excel_filename': excel_filename})
 
 if __name__ == '__main__':
     app.run(debug=True)
