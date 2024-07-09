@@ -7,35 +7,35 @@
     <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}">
 </head>
 <body>
-    <h1>검색 결과</h1>
-    <form action="/download/{{ excel_filename }}">
-        <button type="submit">엑셀 파일 다운로드</button>
-    </form>
-    <p>전체 검색 결과: {{ total }} 건</p>
+    <div class="container">
+        <h1>검색 결과</h1>
+        <form action="/download/{{ excel_filename }}">
+            <button type="submit" class="download-button">엑셀 파일 다운로드</button>
+        </form>
+        <p>전체 검색 결과: {{ total }} 건</p>
 
-    <table>
-        <thead>
-            <tr>
-                <th>번호</th>
-                <th>제목</th>
-                <th>설명</th>
-                <th>링크</th>
-                <th>날짜</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
+        <table class="result-table">
+            <thead>
                 <tr>
-                    <td>{{ item.cnt }}</td>
-                    <td>{{ item.title }}</td>
-                    <td>{{ item.description }}</td>
-                    <td><a href="{{ item.link }}" target="_blank">바로 가기</a></td>
-                    <td>{{ item.pDate }}</td>
+                    <th>번호</th>
+                    <th>제목</th>
+                    <th>설명</th>
+                    <th>링크</th>
+                    <th>날짜</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item.cnt }}</td>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.description }}</td>
+                        <td><a href="{{ item.link }}" target="_blank">바로 가기</a></td>
+                        <td>{{ item.pDate }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>
