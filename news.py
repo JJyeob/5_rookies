@@ -136,6 +136,7 @@ def create_and_send_excel(srcText, recipient, node):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    # 메인 페이지로, 검색어와 이메일 주소를 입력받아 스케줄러에 작업을 추가하는 함수
     if request.method == 'POST':
         srcText = request.form['keyword']
         recipient = request.form['recipient']
@@ -152,10 +153,12 @@ def index():
 
 @app.route('/download/<path:filename>')
 def download(filename):
+    # 파일 다운로드 요청을 처리하는 함수
     return send_file(os.path.join('scheduled_files', filename), as_attachment=True)
 
 @app.route('/get_latest_data', methods=['POST'])
 def get_latest_data():
+    # AJAX 요청으로 최신 데이터를 요청받아 JSON 형식으로 반환하는 함수
     srcText = request.form['keyword']
     recipient = request.form['recipient']
     node = 'news'
