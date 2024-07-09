@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Result</title>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}">
+    <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
+</head>
+<body>
+    <div class="container">
+        <h1>검색 결과</h1>
+        <!-- <form id="download-form" action="/download/{{ excel_filename }}">
+            <button type="submit" class="download-button">엑셀 파일 다운로드</button>
+        </form> -->
+        <p id="total-results">전체 검색 결과: {{ total }} 건</p>
+
+        <!--<button id="refresh-button" class="refresh-button">받은 데이터 보기</button>-->
+
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>제목</th>
+                    <th>설명</th>
+                    <th>링크</th>
+                    <th>날짜</th>
+                </tr>
+            </thead>
+            <tbody id="result-table-body">
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item.cnt }}</td>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.description }}</td>
+                        <td><a href="{{ item.link }}" target="_blank">바로 가기</a></td>
+                        <td>{{ item.pDate }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#refresh-button').click(function() {
+                $.post('/get_latest_data', {
+                    keyword: '{{ keyword }}',
+                    recipient: '{{ recipient }}'
+                }, function(data) {
+                    $('#total-results').text('전체 검색 결과: ' + data.total + ' 건');
+                    $('#download-form').attr('action', '/download/' + data.excel_filename);
+                    var tableBody = $('#result-table-body');
+                    tableBody.empty();
+                    data.items.forEach(function(item) {
+                        tableBody.append(
+                            '<tr>' +
+                            '<td>' + item.cnt + '</td>' +
+                            '<td>' + item.title + '</td>' +
+                            '<td>' + item.description + '</td>' +
+                            '<td><a href="' + item.link + '" target="_blank">바로 가기</a></td>' +
+                            '<td>' + item.pDate + '</td>' +
+                            '</tr>'
+                        );
+                    });
+                }, 'json');
+            });
+        });
+    </script>
+</body>
+</html>
